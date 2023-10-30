@@ -3,6 +3,7 @@
 #include <cstring>
 #include <iostream>
 #include <filesystem>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -11,96 +12,124 @@ namespace fs = std::filesystem;
 using std::string;
 using std::vector;
 
-const string FULL { "full_path" };
-const string RELATIVE { "relative_path" };
-const string FIL { "file" };
-const string DIR { "directory" };
-const string OTH { "other" };
-
-struct File {
-    string path;
+class File {
+private:
+    string fpath;
+    string rpath;
     string type;
+    string permissions; //  owner group others 
+                       //  (rwx) (rwx) (rwx)
+
+public:
+    void set_type(string _type) {
+        type = _type;
+    }
+
+    string get_type() const {
+        return type;
+    }
+
+    void set_permitions(string _permissions) {
+        permissions = _permissions;
+    }
+
+    string get_permitions() const {
+        return permissions;
+    }
+
+    void set_fpath(string _fpath) {
+        fpath = _fpath;
+    }
+
+    string get_fpath() const {
+        return fpath;
+    }
+
+    void set_rpath(string _rpath) {
+        rpath = _rpath;
+    }
+
+    string get_rpath() const {
+        return rpath;
+    }
 };
 
 bool compareFiles(const File &a, const File &b) {
-    return a.path < b.path;
+    return a.get_rpath() < b.get_rpath();
 }
 
-// get a list of all files
-vector<File> list_files(string _path, string _type) {
-    vector<File> files;
-    for (const auto &entry : fs::directory_iterator(_path)) {
-        File cur;
-        if (fs::is_directory(entry.status()))
-            cur.type = DIR;
-        else if (fs::is_regular_file(entry.status()))
-            cur.type = FIL;
-        else
-            cur.type = OTH;
+class Dir {
+private:
+    string path;
+    vector<File> file_list;
 
-        string full_path = entry.path().string();
-        if (_type == FULL)
-            cur.path = full_path;
-        else if (_type == RELATIVE) {
-            string relative_path = full_path.substr(_path.length() + 1);
-            cur.path = relative_path;
-        }
-        else 
-            throw std::invalid_argument("[Error] path types: 'FULL', 'RELATIVE'\n");
+    const string FPATH { "full_path" };
+    const string RPATH { "relative_path" };
+    const string FIL { "file" };
+    const string DIR { "directory" };
+    const string OTH { "other" };
 
-        files.push_back(cur);
-    }
-    std::sort(files.begin(), files.end(), compareFiles);
-    return files;
-}
-
-// printing
-void print(vector<File> &_files_list, string _path_type) {
-    if (_path_type == RELATIVE) {
-        for (const auto &file : _files_list) {
-            if (file.type == DIR)
-                std::cout << "\033[34m" << file.path << "\033[0m  ";  // Blue for directories
-            else if (file.type == OTH)
-                std::cout << "\033[32m" << file.path << "\033[0m  ";  // Green for other types
+    void load_files() {
+        for (const auto &entry : fs::directory_iterator(path)) {
+            File cur;
+            // set file type
+            if (fs::is_directory(entry.status()))
+                cur.set_type(DIR);
+            else if (fs::is_regular_file(entry.status()))
+                cur.set_type(FIL);
             else
-                std::cout << file.path << "  ";
-        }
-        std::cout << "\n";
-    }
-    else {
-        for (const auto &file : _files_list) {
-            if (file.type == DIR)
-                std::cout << "\033[34m" << file.path << "\033[0m\n";  // Blue for directories
-            else if (file.type == OTH)
-                std::cout << "\033[32m" << file.path << "\033[0m\n";  // Green for other types
-            else
-                std::cout << file.path << "\n";
-        }
-    }
-}
+                cur.set_type(OTH);
 
-int main(int argc, char *argv[]) 
+            // set rpath & fpath
+            string full_path = entry.path().string();
+            cur.set_fpath(full_path);
+            cur.set_rpath(full_path.substr(path.length() + 1));
+
+            // set file permissions
+            fs::perms p { fs::status(full_path).permissions() };
+            std::ostringstream oss;
+            oss << ((cur.get_type() == DIR) ? "d" : ".")
+                << ((p & fs::perms::owner_read)   != fs::perms::none ? "r" : "-")
+                << ((p & fs::perms::owner_write)  != fs::perms::none ? "w" : "-")
+                << ((p & fs::perms::owner_exec)   != fs::perms::none ? "x" : "-")
+                << ((p & fs::perms::group_read)   != fs::perms::none ? "r" : "-")
+                << ((p & fs::perms::group_write)  != fs::perms::none ? "w" : "-")
+                << ((p & fs::perms::group_exec)   != fs::perms::none ? "x" : "-")
+                << ((p & fs::perms::others_read)  != fs::perms::none ? "r" : "-")
+                << ((p & fs::perms::others_write) != fs::perms::none ? "w" : "-")
+                << ((p & fs::perms::others_exec)  != fs::perms::none ? "x" : "-"); 
+            cur.set_permitions(oss.str());
+
+            file_list.push_back(cur);
+        }
+        std::sort(file_list.begin(), file_list.end(), compareFiles);
+    }
+
+public:
+    Dir(string path) : path(path) {
+        load_files();
+    }
+
+    const vector<File>& get_file_list() {
+        return file_list;
+    }
+
+    // void print_fpath() {}
+    // void print_rpath() {}
+};
+
+
+int main(int argc, char **argv) 
 {
     string path { fs::current_path() };
-    string print_type { RELATIVE };
 
-    if (argc == 1);
-    else if (argc == 2) {
-        if (strcmp(argv[1], "-l") == 0)
-            print_type = FULL;
-        else
-            path = argv[1];
-    }
-    else if (argc == 3) {
-        path = argv[2];
-        if (strcmp(argv[1], "-l") == 0)
-            print_type = FULL;
-    }
-    else
-        throw std::invalid_argument("[Error] no more than 2 argument\nls [option] <file_path>\n");
+    Dir cur_dir(path);
 
-    auto files_paths { list_files(path, RELATIVE) };
-    print(files_paths, print_type);
+    for (const auto &file : cur_dir.get_file_list()) {
+        std::cout 
+            << file.get_permitions() << "  "
+            << file.get_rpath() << "\n";
+    }
 
     return 0;
 }
