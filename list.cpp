@@ -17,8 +17,10 @@ private:
     string fpath;
     string rpath;
     string type;
-    string permissions; //  owner group others 
-                       //  (rwx) (rwx) (rwx)
+    string owner_perms;
+    string group_perms;
+    string others_perms;
+    string size;
 
 public:
     void set_type(string _type) {
@@ -29,12 +31,32 @@ public:
         return type;
     }
 
-    void set_permitions(string _permissions) {
-        permissions = _permissions;
+    void set_owner_perms(string _perms) {
+        owner_perms = _perms;
+    }
+
+    string get_owner_perms() const {
+        return owner_perms;
+    }
+
+    void set_group_perms(string _perms) {
+        group_perms = _perms;
+    }
+
+    string get_group_perms() const {
+        return group_perms;
+    }
+    
+    void set_others_perms(string _perms) {
+        others_perms = _perms;
+    }
+
+    string get_others_perms() const {
+        return others_perms;
     }
 
     string get_permitions() const {
-        return permissions;
+        return type + owner_perms + group_perms + others_perms;
     }
 
     void set_fpath(string _fpath) {
@@ -52,6 +74,14 @@ public:
     string get_rpath() const {
         return rpath;
     }
+
+    void set_size(string _size) {
+        size = _size;
+    }
+
+    string get_size() const {
+        return size;
+    }
 };
 
 bool compareFiles(const File &a, const File &b) {
@@ -63,22 +93,16 @@ private:
     string path;
     vector<File> file_list;
 
-    const string FPATH { "full_path" };
-    const string RPATH { "relative_path" };
-    const string FIL { "file" };
-    const string DIR { "directory" };
-    const string OTH { "other" };
-
     void load_files() {
         for (const auto &entry : fs::directory_iterator(path)) {
             File cur;
             // set file type
             if (fs::is_directory(entry.status()))
-                cur.set_type(DIR);
-            else if (fs::is_regular_file(entry.status()))
-                cur.set_type(FIL);
+                cur.set_type("d");
+            // else if (fs::is_regular_file(entry.status()))
+            //     cur.set_type(".");
             else
-                cur.set_type(OTH);
+                cur.set_type(".");
 
             // set rpath & fpath
             string full_path = entry.path().string();
@@ -87,18 +111,24 @@ private:
 
             // set file permissions
             fs::perms p { fs::status(full_path).permissions() };
-            std::ostringstream oss;
-            oss << ((cur.get_type() == DIR) ? "d" : ".")
-                << ((p & fs::perms::owner_read)   != fs::perms::none ? "r" : "-")
-                << ((p & fs::perms::owner_write)  != fs::perms::none ? "w" : "-")
-                << ((p & fs::perms::owner_exec)   != fs::perms::none ? "x" : "-")
-                << ((p & fs::perms::group_read)   != fs::perms::none ? "r" : "-")
-                << ((p & fs::perms::group_write)  != fs::perms::none ? "w" : "-")
-                << ((p & fs::perms::group_exec)   != fs::perms::none ? "x" : "-")
-                << ((p & fs::perms::others_read)  != fs::perms::none ? "r" : "-")
-                << ((p & fs::perms::others_write) != fs::perms::none ? "w" : "-")
-                << ((p & fs::perms::others_exec)  != fs::perms::none ? "x" : "-"); 
-            cur.set_permitions(oss.str());
+            std::ostringstream owner;
+            owner << ((p & fs::perms::owner_read)   != fs::perms::none ? "r" : "-")
+                  << ((p & fs::perms::owner_write)  != fs::perms::none ? "w" : "-")
+                  << ((p & fs::perms::owner_exec)   != fs::perms::none ? "x" : "-");
+            cur.set_owner_perms(owner.str());
+            std::ostringstream group;
+            group << ((p & fs::perms::group_read)   != fs::perms::none ? "r" : "-")
+                  << ((p & fs::perms::group_write)  != fs::perms::none ? "w" : "-")
+                  << ((p & fs::perms::group_exec)   != fs::perms::none ? "x" : "-");
+            cur.set_group_perms(group.str());
+            std::ostringstream others;
+            others << ((p & fs::perms::others_read)  != fs::perms::none ? "r" : "-")
+                   << ((p & fs::perms::others_write) != fs::perms::none ? "w" : "-")
+                   << ((p & fs::perms::others_exec)  != fs::perms::none ? "x" : "-"); 
+            cur.set_others_perms(others.str());
+
+            // set file size
+
 
             file_list.push_back(cur);
         }
@@ -128,6 +158,7 @@ int main(int argc, char **argv)
     for (const auto &file : cur_dir.get_file_list()) {
         std::cout 
             << file.get_permitions() << "  "
+            << file.get_size() << "  "
             << file.get_rpath() << "\n";
     }
 
