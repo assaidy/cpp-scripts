@@ -127,9 +127,6 @@ private:
                    << ((p & fs::perms::others_exec)  != fs::perms::none ? "x" : "-"); 
             cur.set_others_perms(others.str());
 
-            // set file size
-
-
             file_list.push_back(cur);
         }
         std::sort(file_list.begin(), file_list.end(), compareFiles);
