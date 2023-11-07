@@ -44,15 +44,15 @@ int main()
     string choosen_bg { get_rand_file(files) };
 
     // set as background (once)
-    // set_wal(choosen_bg);
+    set_wal(choosen_bg);
 
     // automatically change wallpaper (work in bg)
-    while (true) {
-        set_wal(choosen_bg);
-        const std::chrono::minutes DURATION(1);
-        std::this_thread::sleep_for(DURATION);
-        choosen_bg = get_rand_file(files);
-    }
+    // while (true) {
+    //     set_wal(choosen_bg);
+    //     const std::chrono::minutes DURATION(1);
+    //     std::this_thread::sleep_for(DURATION);
+    //     choosen_bg = get_rand_file(files);
+    // }
 
     // set pywal
     // const auto pywal_cmd { "wal -i " + choosen_bg };
