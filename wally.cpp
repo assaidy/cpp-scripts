@@ -24,43 +24,52 @@ string get_rand_file(vector<string> files) {
     return files.at(rand() % files.size());
 }
 
-void set_wal(const string &_choosen_bg) {
-    const auto feh_cmd { "feh --bg-fill " + _choosen_bg };
-    system(feh_cmd.c_str());
+void set_wal(const string &_choosen_bg, char mode) {
+    const auto swww_cmd { "swww img " + _choosen_bg }; // Wayland
+    const auto feh_cmd { "feh --bg-fill " + _choosen_bg }; // Xorg
+    if (mode == 'W') {
+        system(swww_cmd.c_str());
+    } else if (mode == 'X') {
+        system(feh_cmd.c_str());
+    }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    srand(time(0));
+    if (argc == 1) {
+        return 1;
+    } else {
+        srand(time(0));
 
-    // declare the path
-    string HOME { getenv("HOME") };
-    string path { HOME + "/Pictures/walls" };
+        // declare the path
+        // string HOME { getenv("HOME") };
+        // string path { HOME + "/Pictures/walls" };
 
-    // get all files
-    auto files { get_dir_files(path) };
+        // get all files
+        auto files { get_dir_files(argv[1]) };
 
-    // choose random file
-    string choosen_bg { get_rand_file(files) };
+        // choose random file
+        string choosen_bg { get_rand_file(files) };
 
-    // set as background (once)
-    set_wal(choosen_bg);
+        // set as background (once)
+        set_wal(choosen_bg, 'W');
 
-    // automatically change wallpaper (work in bg)
-    // while (true) {
-    //     set_wal(choosen_bg);
-    //     const std::chrono::minutes DURATION(1);
-    //     std::this_thread::sleep_for(DURATION);
-    //     choosen_bg = get_rand_file(files);
-    // }
+        // automatically change wallpaper (work in bg)
+        // while (true) {
+        //     set_wal(choosen_bg, 'W');
+        //     const std::chrono::minutes DURATION(10);
+        //     std::this_thread::sleep_for(DURATION);
+        //     choosen_bg = get_rand_file(files);
+        // }
 
-    // set pywal
-    // const auto pywal_cmd { "wal -i " + choosen_bg };
-    // system(pywal_cmd.c_str());
+        // set pywal
+        // const auto pywal_cmd { "wal -i " + choosen_bg };
+        // system(pywal_cmd.c_str());
 
-    // set wal-telegram
-    // const auto waltelegram_cmd { "wal-telegram --wal " + choosen_bg };
-    // system(waltelegram_cmd.c_str());
+        // set wal-telegram
+        // const auto waltelegram_cmd { "wal-telegram --wal " + choosen_bg };
+        // system(waltelegram_cmd.c_str());
 
-    return 0;
+        return 0;
+    }
 }
