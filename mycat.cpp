@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
     }
     else {
         help_msg();
+        return 1;
     }
     return 0;
 }
