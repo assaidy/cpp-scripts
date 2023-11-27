@@ -11,6 +11,9 @@ namespace fs = std::filesystem;
 using std::string;
 using std::vector;
 
+const char WAYLAND_MD {'w'};
+const char XORG_MD {'x'};
+
 // get a list of all files
 vector<string> get_dir_files(const string &_path) {
     vector<string> files;
@@ -27,9 +30,9 @@ string get_rand_file(vector<string> files) {
 void set_wal(const string &_choosen_bg, char mode) {
     const auto swww_cmd { "swww img " + _choosen_bg }; // Wayland
     const auto feh_cmd { "feh --bg-fill " + _choosen_bg }; // Xorg
-    if (mode == 'W') {
+    if (mode == WAYLAND_MD) {
         system(swww_cmd.c_str());
-    } else if (mode == 'X') {
+    } else if (mode == XORG_MD) {
         system(feh_cmd.c_str());
     }
 }
@@ -52,7 +55,7 @@ int main(int argc, char *argv[])
         string choosen_bg { get_rand_file(files) };
 
         // set as background (once)
-        set_wal(choosen_bg, 'W');
+        set_wal(choosen_bg, WAYLAND_MD);
 
         // automatically change wallpaper (work in bg)
         // while (true) {
