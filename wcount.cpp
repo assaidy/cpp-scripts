@@ -3,8 +3,30 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 using namespace std;
+
+// split by any type of spaces [another way of counting words]
+// split then count
+std::vector<std::string> split_str_by_sp(const std::string &str) {
+    std::string token;
+    std::vector<std::string> result;
+    for (size_t i = 0; i < str.size(); i++) {
+        if (isprint(str.at(i)) && str.at(i) != ' ') {
+            token += str.at(i);
+        } else {
+            if (!token.empty()) {
+                result.push_back(token);
+                token.clear();
+            }
+        }
+    }
+    if (!token.empty()) {
+        result.push_back(token);
+    }
+    return result;
+}
 
 void help_msg() {
     cout << "[Error] invalide argument.\n"
