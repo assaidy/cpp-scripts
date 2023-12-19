@@ -1,7 +1,6 @@
 #include <chrono>
 #include <cstdlib>
 #include <ctime>
-#include <iostream>
 #include <filesystem>
 #include <string>
 #include <thread>
@@ -52,8 +51,8 @@ int main(int argc, char *argv[])
         string choosen_bg { get_rand_file(files) };
 
         // INFO: set as background (once)
-        set_wal_wayland(choosen_bg);
-        // set_wal_xorg(choosen_bg);
+        // set_wal_wayland(choosen_bg);
+        set_wal_xorg(choosen_bg);
 
         // INFO: automatically change wallpaper (work in bg)
         // set_wal_wayland(choosen_bg);
