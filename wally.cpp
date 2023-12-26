@@ -1,3 +1,7 @@
+/*
+ * set a random background from a specific folder 
+ */
+
 #include <chrono>
 #include <cstdlib>
 #include <ctime>
@@ -35,42 +39,44 @@ void set_wal_xorg(const string &_choosen_bg) {
 
 int main(int argc, char *argv[])
 {
+    srand(time(0));
+
+    // INFO: declare the path
+    string path;
     if (argc == 1) {
-        return 1;
+        string HOME { getenv("HOME") };
+        path = HOME + "/Pictures/walls";
     } else {
-        srand(time(0));
-
-        // INFO: declare the path
-        // string HOME { getenv("HOME") };
-        // string path { HOME + "/Pictures/walls" };
-
-        // INFO: get all files
-        auto files { get_dir_files(argv[1]) };
-
-        // INFO: choose random file
-        string choosen_bg { get_rand_file(files) };
-
-        // INFO: set as background (once)
-        // set_wal_wayland(choosen_bg);
-        set_wal_xorg(choosen_bg);
-
-        // INFO: automatically change wallpaper (work in bg)
-        // set_wal_wayland(choosen_bg);
-        // set_wal_xorg(choosen_bg);
-        // while (true) {
-        //     const std::chrono::minutes DURATION(10);
-        //     std::this_thread::sleep_for(DURATION);
-        //     choosen_bg = get_rand_file(files);
-        // }
-
-        // INFO: set pywal
-        // const auto pywal_cmd { "wal -i " + choosen_bg };
-        // system(pywal_cmd.c_str());
-
-        // INFO: set wal-telegram
-        // const auto waltelegram_cmd { "wal-telegram --wal " + choosen_bg };
-        // system(waltelegram_cmd.c_str());
-
-        return 0;
+	path = argv[1];
     }
+
+    // INFO: get all files
+    auto files { get_dir_files(path) };
+
+    // INFO: choose random file
+    string choosen_bg { get_rand_file(files) };
+
+    // INFO: set as background (once)
+    // set_wal_wayland(choosen_bg);
+    set_wal_xorg(choosen_bg);
+
+    // INFO: automatically change wallpaper by time period
+    // while (true) {
+    //     set_wal_wayland(choosen_bg);
+    //     set_wal_xorg(choosen_bg);
+    //     const std::chrono::minutes DURATION(10);
+    //     std::this_thread::sleep_for(DURATION);
+    //     choosen_bg = get_rand_file(files);
+    // }
+
+    // INFO: set pywal
+    const auto pywal_cmd { "wal -i " + choosen_bg };
+    // system(pywal_cmd.c_str());
+    // system("xdotool key super+F5"); // to work on dwm
+
+    // INFO: set wal-telegram
+    // const auto waltelegram_cmd { "wal-telegram --wal " + choosen_bg };
+    // system(waltelegram_cmd.c_str());
+
+    return 0;
 }
